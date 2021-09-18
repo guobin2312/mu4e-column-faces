@@ -174,7 +174,9 @@ the message flags in included in `mu4e-column-faces--apply-face'."
        (:user-agent           'mu4e-column-faces-user-agent)
        ((:list :mailing-list) 'mu4e-column-faces-mailing-list)
        ((:date :human-date)   'mu4e-column-faces-date)
-       ((:maildir :path)      'mu4e-column-faces-maildir)))))
+       ((:maildir :path)      'mu4e-column-faces-maildir)
+       (t (if (fboundp 'mu4e-column-faces--custom-face)
+              (mu4e-column-faces--custom-face ,column ,msg)))))))
 
 ;;;###autoload
 (define-minor-mode mu4e-column-faces-mode
