@@ -138,8 +138,9 @@ the message flags in included in `mu4e-column-faces--apply-face'."
      (let* ((field (car ,f-w))
             (width (cdr ,f-w))
             (val (mu4e~headers-field-value ,msg field))
-            (val (if width (mu4e~headers-truncate-field field val width) val))
-            (face (mu4e-column-faces--determine-face (car ,f-w) ,msg)))
+            (face (mu4e-column-faces--determine-face field ,msg))
+            (face (if (and face (fboundp 'mu4e-column-faces--adjust-face)) (mu4e-column-faces--adjust-face face field val ,msg) face))
+            (val (if width (mu4e~headers-truncate-field field val width) val)))
        (when face
          (put-text-property 0 (length val) 'face face val))
        val))))
