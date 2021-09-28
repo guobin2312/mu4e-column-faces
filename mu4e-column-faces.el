@@ -104,6 +104,25 @@
   "Face for `:user-agent' columns."
   :group 'mu4e-column-faces)
 
+(defcustom mu4e-column-faces-custom-column-handler nil
+  "Function to optionally handle custom columns.
+
+Value must be a function that takes two arguments:
+- the column
+- the mu4e message object"
+  :group 'mu4e-column-faces)
+
+(defcustom mu4e-column-faces-adjust-face nil
+  "Function to optionally further adjust mu4e's column faces.
+Can for example be used to assign different faces to different email accounts.
+
+Value must be a function that takes 2 arguments:
+- the so far assigned face
+- the column
+- the column's value
+- the mu4e message object"
+  :group 'mu4e-column-faces)
+
 (defun mu4e-column-faces--header-handler (msg &optional point)
   "Entry point for the mu4e overrides.
 Overrides `mu4e~headers-header-handler' out of necessity because all the
@@ -139,7 +158,9 @@ the message flags in included in `mu4e-column-faces--apply-face'."
             (width (cdr ,f-w))
             (val (mu4e~headers-field-value ,msg field))
             (face (mu4e-column-faces--determine-face field ,msg))
-            (face (if (and face (fboundp 'mu4e-column-faces--adjust-face)) (mu4e-column-faces--adjust-face face field val ,msg) face))
+            (face (if (and face mu4e-column-faces-adjust-face)
+                      (funcall mu4e-column-faces-adjust-face face field val ,msg)
+                    face))
             (val (if width (mu4e~headers-truncate-field field val width) val)))
        (when face
          (put-text-property 0 (length val) 'face face val))
@@ -176,8 +197,9 @@ the message flags in included in `mu4e-column-faces--apply-face'."
        ((:list :mailing-list) 'mu4e-column-faces-mailing-list)
        ((:date :human-date)   'mu4e-column-faces-date)
        ((:maildir :path)      'mu4e-column-faces-maildir)
-       (t (if (fboundp 'mu4e-column-faces--custom-face)
-              (mu4e-column-faces--custom-face ,column ,msg)))))))
+       (t (if mu4e-column-faces-custom-column-handler
+              (funcall mu4e-column-faces-custom-column-handler
+                       ,column ,msg)))))))
 
 ;;;###autoload
 (define-minor-mode mu4e-column-faces-mode
